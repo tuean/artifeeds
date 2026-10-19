@@ -1,0 +1,42 @@
+[package]
+name = "artifeeds-core"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+description = "Feed ingestion engine: config, HTTP, parsing, dedup, storage, adaptive scheduling"
+
+[dependencies]
+anyhow.workspace = true
+arc-swap.workspace = true
+base64 = "0.22"
+encoding_rs = "0.8"
+feed-rs.workspace = true
+lol_html = "3"
+flume.workspace = true
+futures.workspace = true
+notify.workspace = true
+parking_lot.workspace = true
+reqwest.workspace = true
+rusqlite.workspace = true
+rustc-hash.workspace = true
+seahash.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+thiserror.workspace = true
+tokio.workspace = true
+toml.workspace = true
+tracing.workspace = true
+tracing-subscriber.workspace = true
+url.workspace = true
+zhconv = "0.4.2"
+
+[dev-dependencies]
+
+[[bin]]
+name = "artifeeds"
+path = "src/bin/artifeeds.rs"
+
+[lib]
+name = "artifeeds_core"
+path = "src/lib.rs"

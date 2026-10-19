@@ -1,0 +1,138 @@
+# Artifeeds — example configuration.
+#
+# Copy to ~/Library/Application Support/Artifeeds/feeds.toml (macOS) or point
+# ARTIFEEDS_CONFIG at it. The file is watched: save it and the running app
+# reloads, diffing against the previous compile so unchanged feeds keep their
+# ETags, backoff state and learned polling interval.
+
+# --------------------------------------------------------------------------
+# Composition comes first: in TOML, a key after a [table] header belongs to that
+# table, so `include` must appear before any [settings]/[sources] section.
+# Each entry may be a file or a whole directory (every *.toml / *.opml / *.xml
+# inside is picked up), so an OPML export from another reader drops straight in.
+# --------------------------------------------------------------------------
+include = ["conf.d"]
+
+# --------------------------------------------------------------------------
+# Global tunables — the resource budget lives here.
+# --------------------------------------------------------------------------
+[settings]
+# Concurrency budget. Two levels: total in-flight requests, and per hostname.
+# 16 × 2 is comfortable for a few thousand feeds on a home connection.
+global_concurrency    = 16
+per_host_concurrency  = 2
+host_min_gap_ms       = 250        # minimum spacing between requests to one host
+
+request_timeout_secs  = 20
+connect_timeout_secs  = 5
+
+# Adaptive polling bounds. Every feed starts at its own interval and then
+# stretches towards `quiet_factor × interval` while it keeps returning 304.
+default_interval_secs = 1800
+min_interval_secs     = 300
+max_interval_secs     = 86400
+quiet_factor          = 4
+jitter_percent        = 10         # ±, spreads the fleet's wake-ups
+
+# Bounded resource use.
+max_entries_per_fetch = 200        # feed archives are truncated to the newest N
+max_body_bytes        = 16777216   # 16 MiB hard cap per response (archive-style feeds are large)
+max_concurrent_fetches = 24        # spawned fetch tasks (backpressure)
+preview_chars         = 420
+max_content_bytes     = 98304      # stored body per article
+max_in_memory_articles = 20000     # UI window; SQLite keeps everything
+retention_days        = 120        # prune read articles after this
+max_articles          = 200000     # hard row cap (0 = unlimited)
+
+full_text_search      = true       # SQLite FTS5 index
+
+# Reading mode: save the original page locally the first time an article is
+# opened (stylesheets/images/fonts inlined into one self-contained HTML file),
+# then render that copy offline on every later open.
+archive_on_open            = true
+archive_max_bytes          = 12582912   # 12 MiB per archived document
+archive_max_resource_bytes = 2097152    # 2 MiB per inlined resource
+archive_max_resources      = 80
+user_agent            = "Artifeeds/0.1 (+https://github.com/local/artifeeds)"
+accept_language       = "zh-CN,zh;q=0.9,en;q=0.8"
+
+# Optional extras
+# db_path = "~/Library/Application Support/Artifeeds/artifeeds.db"
+# proxy   = "http://127.0.0.1:7890"
+# [settings.headers]
+# "x-custom" = "value"
+
+# Defaults applied to every source in *this* file, overridable per source.
+[defaults]
+# headers = { "accept" = "application/rss+xml, application/atom+xml" }
+
+# Per-group overrides: `[group_defaults.News] interval_secs = 600`
+[group_defaults.News]
+interval_secs = 900
+
+[group_defaults.Rust]
+interval_secs = 1800
+
+# --------------------------------------------------------------------------
+# Sources
+# --------------------------------------------------------------------------
+
+[[sources]]
+title = "Rust Blog"
+url   = "https://blog.rust-lang.org/feed.xml"
+group = "Rust"
+tags  = ["rust", "official"]
+interval_secs = 1800
+
+[[sources]]
+title = "This Week in Rust"
+url   = "https://this-week-in-rust.org/rss.xml"
+group = "Rust"
+
+[[sources]]
+title = "Hacker News (front page)"
+url   = "https://hnrss.org/frontpage"
+group = "News"
+interval_secs = 600
+
+[[sources]]
+title = "Lobsters"
+url   = "https://lobste.rs/rss"
+group = "News"
+
+[[sources]]
+title = "LWN.net"
+url   = "https://lwn.net/headlines/rss"
+group = "News"
+
+[[sources]]
+title = "Simon Willison"
+url   = "https://simonwillison.net/atom/everything/"
+group = "Blogs"
+
+[[sources]]
+title = "Julia Evans"
+url   = "https://jvns.ca/atom.xml"
+group = "Blogs"
+
+[[sources]]
+title = "Ars Technica"
+url   = "https://feeds.arstechnica.com/arstechnica/index"
+group = "News"
+
+[[sources]]
+title = "The Verge"
+url   = "https://www.theverge.com/rss/index.xml"
+group = "News"
+
+[[sources]]
+title = "GitHub Blog"
+url   = "https://github.blog/feed/"
+group = "Dev"
+
+# A feed whose URL moved: pin `key` so history and read state survive.
+# [[sources]]
+# key   = "blog.example.com/feed"
+# title = "Example Blog"
+# url   = "https://blog.example.com/new-feed.xml"
+# group = "Blogs"

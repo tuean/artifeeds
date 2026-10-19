@@ -1,0 +1,9 @@
+/target
+**/*.rs.bk
+.DS_Store
+*.db
+*.db-wal
+*.db-shm
+
+# The .app is built output; the installed copy lives in /Applications.
+dist/

@@ -1,0 +1,35 @@
+[package]
+name = "artifeeds-app"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+description = "GPUI desktop shell for Artifeeds"
+
+[dependencies]
+artifeeds-core.workspace = true
+anyhow.workspace = true
+arc-swap.workspace = true
+flume.workspace = true
+parking_lot.workspace = true
+rustc-hash.workspace = true
+tracing.workspace = true
+tracing-subscriber.workspace = true
+# `runtime_shaders` compiles the Metal shaders at runtime, which means the
+# build does not need the full Xcode Metal toolchain — only Command Line Tools.
+# GPUI Kit pins its own GPUI snapshot (`gpui-pre`) and re-exports it, so the
+# app consumes exactly one GPUI. Declaring `gpui` directly as well would put two
+# incompatible GPUI versions in one graph, whose types cannot be mixed.
+gpui-kit = "0.7.1"
+
+# Reading mode embeds a real WKWebView so the original page renders with its own
+# styling. Both of these are already in GPUI's tree, so adding them is free.
+[target.'cfg(target_os = "macos")'.dependencies]
+objc = "0.2"
+raw-window-handle = "0.6"
+# Completion handlers for the JavaScript bridge (`evaluateJavaScript:`).
+block = "0.1"
+
+[[bin]]
+name = "artifeeds-app"
+path = "src/main.rs"

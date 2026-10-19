@@ -1,0 +1,67 @@
+# Artifeeds — 中文独立博客源
+#
+# 由 scripts/import_cib.py 生成，数据来自
+# https://github.com/timqian/chinese-independent-blogs
+#
+# `include` 必须放在任何 [table] 之前（TOML 规则）：其后出现的键会归属该 table。
+include = ["blogs"]
+
+[settings]
+# 约 1 400 个独立博客：放宽并发，但对单个域名保持克制。
+# 独立博客分布在上千个不同域名上：per-host 限制几乎不会成为瓶颈，
+# 全局并发才是决定首次刷新耗时的因素。对单个域名依旧保持克制。
+global_concurrency     = 48
+per_host_concurrency   = 2
+host_min_gap_ms        = 400
+max_concurrent_fetches = 64
+
+# 大量站点不可达/极慢：尽早失败，把带宽让给活着的源。
+connect_timeout_secs = 5
+request_timeout_secs = 20
+
+# 独立博客更新频率低：基础间隔 1 小时，安静时最多拉长到 4 小时。
+default_interval_secs = 3600
+min_interval_secs     = 900
+max_interval_secs     = 86400
+quiet_factor          = 4
+jitter_percent        = 12
+
+# 首次启动把 1 400 个源分摊到 45 秒内，避免瞬时打满连接数。
+startup_spread_secs   = 45
+
+# 归档型 feed 只取最新 60 条，首次全量刷新才不会失控。
+max_entries_per_fetch  = 60
+max_body_bytes         = 4194304
+preview_chars          = 400
+max_content_bytes      = 65536
+
+# 窗口大小 = 内存开销上限；SQLite 里保存全部历史，搜索覆盖全库。
+max_in_memory_articles = 20000
+retention_days         = 90
+max_articles           = 150000
+full_text_search       = true
+
+# 阅读模式首次打开时把原站整页存成本地自包含 HTML（内含 CSS/图片/字体），
+# 之后离线渲染；独立博客常见改版/删站，存档也顺手解决了链接失效。
+archive_on_open            = true
+archive_max_bytes          = 12582912
+archive_max_resource_bytes = 2097152
+archive_max_resources      = 80
+
+user_agent = "Artifeeds/0.1 (feed reader; +https://github.com/local/artifeeds)"
+accept_language = "zh-CN,zh;q=0.9,en;q=0.8"
+
+[group_defaults."技术"]
+interval_secs = 3600
+
+[group_defaults."生活"]
+interval_secs = 7200
+
+[group_defaults."阅读"]
+interval_secs = 7200
+
+[group_defaults."职场"]
+interval_secs = 5400
+
+[group_defaults."其他"]
+interval_secs = 7200
